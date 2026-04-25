@@ -1,0 +1,42 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files
+.env
+.venv/
+*.env
+conda-meta/
+.conda/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Data files (large or processed)
+data/interim/
+data/processed/
+data/raw/*.csv
+data/raw/*.zip
+
+
+
+# output
+output/
+*.log
+*.csv
+*.png
+*.pkl
+# IDE settings
+.vscode/
+.idea/
+
+# MacOS
+.DS_Store
+
+# Logs / temporary files
+*.log
+*.cache
+*.tmp
+*.temp
