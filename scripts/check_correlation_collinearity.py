@@ -29,7 +29,7 @@ TARGET_COL = "label"
 ID_COLS = ["number", "source", "old_split"]
 
 # 阈值可按需要调整
-CORR_THRESHOLD = 0.70
+CORR_THRESHOLD = 0.75
 VIF_WARNING_THRESHOLD = 5.0
 VIF_HIGH_THRESHOLD = 10.0
 
