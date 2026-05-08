@@ -404,18 +404,28 @@ pred_df = pd.DataFrame({
 pred_df.to_csv(pred_path, index=False, encoding="utf-8-sig")
 print(f"Saved predictions: {pred_path}")
 
-
 # ============================================================
 # 8. BAR PLOT: BLUE AND GRAY
+#    Exclude Youden from bar plot
 # ============================================================
-x = np.arange(len(METRICS))
+PLOT_METRICS = [
+    "AUC",
+    "AUPRC",
+    "Accuracy",
+    "Precision",
+    "Sensitivity",
+    "Specificity",
+    "F1",
+]
+
+x = np.arange(len(PLOT_METRICS))
 w = 0.35
 
 fig, ax = plt.subplots(figsize=(13, 6))
 
 b1 = ax.bar(
     x - w / 2,
-    [m_top10[k] for k in METRICS],
+    [m_top10[k] for k in PLOT_METRICS],
     w,
     label=f"Top10 RandomForest (threshold={best_thresh_top10:.2f})",
     color=TOP10_COLOR,
@@ -426,7 +436,7 @@ b1 = ax.bar(
 
 b2 = ax.bar(
     x + w / 2,
-    [m_full[k] for k in METRICS],
+    [m_full[k] for k in PLOT_METRICS],
     w,
     label=f"Full RandomForest (threshold={best_thresh_full:.2f})",
     color=FULL_COLOR,
@@ -454,7 +464,7 @@ ax.set_title(
     fontweight="bold",
 )
 ax.set_xticks(x)
-ax.set_xticklabels(METRICS, fontsize=11)
+ax.set_xticklabels(PLOT_METRICS, fontsize=11)
 ax.set_ylim(0, 1.15)
 ax.grid(axis="y", linestyle="--", alpha=0.3)
 ax.legend(fontsize=10, frameon=False)
@@ -467,9 +477,6 @@ bar_pdf = RESULT_DIR / "internal_test_comparison_bar_full_vs_top10.pdf"
 plt.savefig(bar_png, dpi=300, bbox_inches="tight")
 plt.savefig(bar_pdf, bbox_inches="tight")
 plt.close()
-
-print(f"Saved figure: {bar_png}")
-print(f"Saved figure: {bar_pdf}")
 
 
 # ============================================================
