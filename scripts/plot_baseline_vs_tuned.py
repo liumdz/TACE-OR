@@ -252,86 +252,23 @@ save_current_figure("fig1_baseline_vs_tuned_each_metric")
 
 
 # ============================================================
-# 6. FIGURE 2: AUC / AUPRC BEFORE-AFTER FOCUSED COMPARISON
+# 6. FIGURE 2: FOUR-PANEL COMPARISON
+#    AUC / AUPRC / Sensitivity / F1
 # ============================================================
-fig, axes = plt.subplots(1, 2, figsize=(18, 6))
 
-focused_metrics = [
+four_panel_metrics = [
     ("AUC", "AUC"),
     ("PR_AUC", "AUPRC"),
-]
-
-for ax, (metric, title) in zip(axes, focused_metrics):
-    baseline_vals = baseline[metric].astype(float).values
-    tuned_vals = tuned[metric].astype(float).values
-
-    baseline_err = get_error(baseline, metric)
-    tuned_err = get_error(tuned, metric)
-
-    bars_baseline = ax.bar(
-        x - width / 2,
-        baseline_vals,
-        width,
-        yerr=baseline_err,
-        capsize=4,
-        color=BASELINE_COLOR,
-        edgecolor="black",
-        linewidth=0.4,
-        ecolor="black",
-        error_kw={"elinewidth": 1.0, "capthick": 1.0},
-        label="Baseline",
-    )
-
-    bars_tuned = ax.bar(
-        x + width / 2,
-        tuned_vals,
-        width,
-        yerr=tuned_err,
-        capsize=4,
-        color=TUNED_COLOR,
-        edgecolor="black",
-        linewidth=0.4,
-        ecolor="black",
-        error_kw={"elinewidth": 1.0, "capthick": 1.0},
-        label="Tuned",
-    )
-
-    add_value_labels(ax, bars_baseline, baseline_vals, baseline_err, fontsize=8)
-    add_value_labels(ax, bars_tuned, tuned_vals, tuned_err, fontsize=8)
-    set_dynamic_ylim(ax, baseline_vals, tuned_vals, baseline_err, tuned_err)
-
-    ax.set_title(f"Baseline vs Tuned {title}", fontsize=15, fontweight="bold")
-    ax.set_ylabel("Score")
-    ax.set_xticks(x)
-    ax.set_xticklabels(
-        [DISPLAY_NAMES[m] for m in MODEL_ORDER],
-        rotation=30,
-        ha="right",
-        fontsize=9,
-    )
-    ax.grid(axis="y", linestyle="--", alpha=0.3)
-    ax.legend(frameon=False)
-
-fig.suptitle(
-    "Discrimination Performance Before and After Hyperparameter Tuning",
-    fontsize=18,
-    fontweight="bold",
-    y=1.03,
-)
-
-save_current_figure("fig2_auc_auprc_before_after")
-
-# ============================================================
-# 7. FIGURE 3: SENSITIVITY / F1 BEFORE-AFTER FOCUSED COMPARISON
-# ============================================================
-fig, axes = plt.subplots(1, 2, figsize=(18, 6))
-
-focused_metrics = [
     ("Sensitivity", "Sensitivity"),
     ("F1", "F1 score"),
 ]
 
-for ax, (metric, title) in zip(axes, focused_metrics):
+panel_labels = ["A", "B", "C", "D"]
+
+fig, axes = plt.subplots(2, 2, figsize=(22, 12))
+axes = axes.flatten()
+
+for idx, (ax, (metric, title)) in enumerate(zip(axes, four_panel_metrics)):
     baseline_vals = baseline[metric].astype(float).values
     tuned_vals = tuned[metric].astype(float).values
 
@@ -366,12 +303,34 @@ for ax, (metric, title) in zip(axes, focused_metrics):
         label="Tuned",
     )
 
-    add_value_labels(ax, bars_baseline, baseline_vals, baseline_err, fontsize=8)
-    add_value_labels(ax, bars_tuned, tuned_vals, tuned_err, fontsize=8)
+    add_value_labels(
+        ax,
+        bars_baseline,
+        baseline_vals,
+        baseline_err,
+        y_offset=0.018,
+        fontsize=8,
+    )
+
+    add_value_labels(
+        ax,
+        bars_tuned,
+        tuned_vals,
+        tuned_err,
+        y_offset=0.018,
+        fontsize=8,
+    )
+
     set_dynamic_ylim(ax, baseline_vals, tuned_vals, baseline_err, tuned_err)
 
-    ax.set_title(f"Baseline vs Tuned {title}", fontsize=15, fontweight="bold")
-    ax.set_ylabel("Score")
+    ax.set_title(
+        f"{panel_labels[idx]}. Baseline vs Tuned {title}",
+        fontsize=14,
+        fontweight="bold",
+        loc="left",
+    )
+
+    ax.set_ylabel("Score", fontsize=11)
     ax.set_xticks(x)
     ax.set_xticklabels(
         [DISPLAY_NAMES[m] for m in MODEL_ORDER],
@@ -379,17 +338,39 @@ for ax, (metric, title) in zip(axes, focused_metrics):
         ha="right",
         fontsize=9,
     )
+
     ax.grid(axis="y", linestyle="--", alpha=0.3)
-    ax.legend(frameon=False)
+
+# 只放一个总图例，避免每个子图重复
+handles, labels = axes[0].get_legend_handles_labels()
+fig.legend(
+    handles,
+    labels,
+    loc="upper center",
+    ncol=2,
+    frameon=False,
+    fontsize=11,
+    bbox_to_anchor=(0.5, 0.98),
+)
 
 fig.suptitle(
-    "Improvement in Positive-Class Detection After Hyperparameter Tuning",
+    "Comparison of Candidate Model Performance Before and After Hyperparameter Tuning",
     fontsize=18,
     fontweight="bold",
     y=1.03,
 )
 
-save_current_figure("fig3_sensitivity_f1_before_after")
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+four_panel_png = FIG_DIR / "fig2_baseline_vs_tuned_four_panel.png"
+four_panel_pdf = FIG_DIR / "fig2_baseline_vs_tuned_four_panel.pdf"
+
+plt.savefig(four_panel_png, dpi=600, bbox_inches="tight")
+plt.savefig(four_panel_pdf, bbox_inches="tight")
+plt.close()
+
+print(f"Saved: {four_panel_png}")
+print(f"Saved: {four_panel_pdf}")
 
 # ============================================================
 # 7. FIGURE 3: TUNED KEY METRICS
