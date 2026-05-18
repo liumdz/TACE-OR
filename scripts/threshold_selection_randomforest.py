@@ -7,7 +7,23 @@ import pandas as pd
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 from sklearn.metrics import (
     confusion_matrix,
@@ -319,7 +335,7 @@ print(TOP10_COMPAT_JSON)
 # ============================================================
 fig, axes = plt.subplots(1, 2, figsize=(16, 6.5), sharey=True)
 
-for ax, model_name in zip(axes, MODEL_CONFIGS.keys()):
+for idx, (ax, model_name) in enumerate(zip(axes, MODEL_CONFIGS.keys())):
     cfg = MODEL_CONFIGS[model_name]
     display_name = cfg["display_name"]
 
@@ -379,7 +395,7 @@ for ax, model_name in zip(axes, MODEL_CONFIGS.keys()):
         f"Spec = {best['Best_Specificity']:.3f}",
         xy=(best_threshold, best_youden),
         xytext=(min(best_threshold + 0.07, 0.72), best_youden - 0.10),
-        fontsize=9,
+        fontsize=13,
         bbox=dict(
             boxstyle="round,pad=0.35",
             facecolor="white",
@@ -393,16 +409,20 @@ for ax, model_name in zip(axes, MODEL_CONFIGS.keys()):
         ),
     )
 
-    ax.set_title(
-        display_name,
-        fontsize=13,
-        fontweight="bold",
-    )
-    ax.set_xlabel("Threshold", fontsize=12, fontweight="bold")
-    ax.grid(alpha=0.3, linestyle="--")
-    ax.legend(fontsize=9, frameon=False, loc="best")
+    ax.set_xlabel("Threshold", fontsize=17, fontweight="bold")
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.tick_params(axis="both", labelsize=14)
 
-axes[0].set_ylabel("Metric value", fontsize=12, fontweight="bold")
+    ax.text(
+        -0.06, 1.02, f"({chr(ord('A') + idx)})",
+        transform=ax.transAxes,
+        fontsize=18, fontweight="bold",
+        va="bottom", ha="left",
+    )
+
+axes[0].set_ylabel("Metric value", fontsize=17, fontweight="bold")
 
 y_min = min(
     all_curve_df["Youden"].min(),
@@ -420,15 +440,19 @@ for ax in axes:
     ax.set_xlim(0, 1)
     ax.set_ylim(max(-0.1, y_min), min(1.15, y_max))
 
-fig.suptitle(
-    "Threshold Selection for Full Random Forest and Top10 Random Forest\n"
-    "Training Out-of-Fold Predictions, Youden Index",
-    fontsize=15,
-    fontweight="bold",
-    y=1.03,
+# 共享图例放在两子图下方，避免遮挡曲线和注释框
+handles, labels = axes[0].get_legend_handles_labels()
+fig.legend(
+    handles,
+    labels,
+    loc="lower center",
+    ncol=3,
+    frameon=False,
+    fontsize=14,
+    bbox_to_anchor=(0.5, -0.02),
 )
 
-plt.tight_layout()
+plt.tight_layout(rect=[0, 0.06, 1, 1])
 plt.savefig(FIG_PATH_PNG, dpi=300, bbox_inches="tight")
 plt.savefig(FIG_PATH_PDF, bbox_inches="tight")
 plt.close()

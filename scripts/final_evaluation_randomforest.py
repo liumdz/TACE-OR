@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,6 +14,21 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss, confusion_matrix
 
 warnings.filterwarnings("ignore")
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 9,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -265,7 +281,7 @@ def main():
     top10_summary = summary_df[summary_df["Model"] == "Top10_RandomForest"].iloc[0]
     full_summary = summary_df[summary_df["Model"] == "Full_RandomForest"].iloc[0]
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5.2))
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 
     axes[0].plot(
         top10_cal["Mean_Predicted_Probability"],
@@ -275,7 +291,7 @@ def main():
         markersize=4,
         linewidth=2.0,
         label=(
-            f"Top10 RF, Brier={top10_summary['Brier_Score']:.3f}, "
+            f"Top10 model, Brier={top10_summary['Brier_Score']:.3f}, "
             f"ECE={top10_summary['ECE']:.3f}"
         ),
     )
@@ -288,7 +304,7 @@ def main():
         markersize=4,
         linewidth=2.0,
         label=(
-            f"Full RF, Brier={full_summary['Brier_Score']:.3f}, "
+            f"Full model, Brier={full_summary['Brier_Score']:.3f}, "
             f"ECE={full_summary['ECE']:.3f}"
         ),
     )
@@ -302,18 +318,26 @@ def main():
     )
     axes[0].set_xlim(0, 1)
     axes[0].set_ylim(0, 1)
-    axes[0].set_xlabel("Predicted probability", fontweight="bold")
-    axes[0].set_ylabel("Observed fraction", fontweight="bold")
-    axes[0].set_title("(A) Calibration Curve", fontweight="bold", fontsize=11)
-    axes[0].grid(alpha=0.25, linestyle="--", linewidth=0.6)
-    axes[0].legend(frameon=False, fontsize=7.5, loc="upper left")
+    axes[0].set_xlabel("Predicted probability", fontweight="bold", fontsize=17)
+    axes[0].set_ylabel("Observed fraction", fontweight="bold", fontsize=17)
+    axes[0].grid(axis="y", alpha=0.3, linestyle="--", linewidth=0.6)
+    axes[0].spines["top"].set_visible(False)
+    axes[0].spines["right"].set_visible(False)
+    axes[0].tick_params(axis="both", labelsize=14)
+    axes[0].legend(frameon=False, fontsize=12, loc="upper left")
+    axes[0].text(
+        -0.10, 1.02, "(A)",
+        transform=axes[0].transAxes,
+        fontsize=18, fontweight="bold",
+        va="bottom", ha="left",
+    )
 
     axes[1].plot(
         decision_df["Threshold"],
         decision_df["Top10_RandomForest_Net_Benefit"],
         color=TOP10_COLOR,
         linewidth=2.0,
-        label="Top10 RandomForest",
+        label="Top10 model",
     )
     axes[1].plot(
         decision_df["Threshold"],
@@ -321,7 +345,7 @@ def main():
         color=FULL_COLOR,
         linestyle="--",
         linewidth=2.0,
-        label="Full RandomForest",
+        label="Full model",
     )
     axes[1].plot(
         decision_df["Threshold"],
@@ -355,18 +379,20 @@ def main():
     )
     axes[1].set_xlim(0, 1)
     axes[1].set_ylim(-0.15, 0.25)
-    axes[1].set_xlabel("Threshold probability", fontweight="bold")
-    axes[1].set_ylabel("Net benefit", fontweight="bold")
-    axes[1].set_title("(B) Decision Curve Analysis", fontweight="bold", fontsize=11)
-    axes[1].grid(alpha=0.25, linestyle="--", linewidth=0.6)
-    axes[1].legend(frameon=False, fontsize=7.5, loc="upper right")
-
-    fig.suptitle(
-        "Random Forest: Calibration Curve and Decision Curve - Test Set",
-        fontsize=13,
-        fontweight="bold",
-        y=1.04,
+    axes[1].set_xlabel("Threshold probability", fontweight="bold", fontsize=17)
+    axes[1].set_ylabel("Net benefit", fontweight="bold", fontsize=17)
+    axes[1].grid(axis="y", alpha=0.3, linestyle="--", linewidth=0.6)
+    axes[1].spines["top"].set_visible(False)
+    axes[1].spines["right"].set_visible(False)
+    axes[1].tick_params(axis="both", labelsize=14)
+    axes[1].legend(frameon=False, fontsize=12, loc="upper right")
+    axes[1].text(
+        -0.10, 1.02, "(B)",
+        transform=axes[1].transAxes,
+        fontsize=18, fontweight="bold",
+        va="bottom", ha="left",
     )
+
     plt.tight_layout()
 
     png_path = OUT_DIR / "internal_test_decision_calibration_curves.png"

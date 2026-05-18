@@ -10,8 +10,24 @@ import shap
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 warnings.filterwarnings("ignore")
 
@@ -685,7 +701,7 @@ fig.subplots_adjust(
     left=0.055,
     right=0.955,
     bottom=0.11,
-    top=0.87,
+    top=0.92,
     wspace=0.18,
 )
 # ------------------------------------------
@@ -710,25 +726,26 @@ ax_int.axhline(
     alpha=0.85,
 )
 
-ax_int.set_xlabel("Diameter of Tumor (cm)", fontsize=13, fontweight="bold")
-ax_int.set_ylabel("SHAP Value for Diameter of Tumor", fontsize=13, fontweight="bold")
-ax_int.set_title(
-    "(A) SHAP Dependence: Diameter × Number",
-    fontsize=15,
-    fontweight="bold",
-    pad=10,
-)
+ax_int.set_xlabel("Diameter of tumor (cm)", fontsize=17, fontweight="bold")
+ax_int.set_ylabel("SHAP value for Diameter of tumor", fontsize=17, fontweight="bold")
 
-ax_int.tick_params(axis="both", labelsize=11)
-ax_int.grid(alpha=0.25, linestyle="--")
+ax_int.tick_params(axis="both", labelsize=14)
+ax_int.grid(axis="y", alpha=0.3, linestyle="--")
 ax_int.spines["top"].set_visible(False)
 ax_int.spines["right"].set_visible(False)
+
+ax_int.text(
+    -0.08, 1.02, "(A)",
+    transform=ax_int.transAxes,
+    fontsize=18, fontweight="bold",
+    va="bottom", ha="left",
+)
 
 divider1 = make_axes_locatable(ax_int)
 cax1 = divider1.append_axes("right", size="4.2%", pad=0.08)
 cbar = fig.colorbar(sc, cax=cax1)
-cbar.set_label("Number of Tumor", fontsize=11, fontweight="bold")
-cbar.ax.tick_params(labelsize=10)
+cbar.set_label("Number of tumor", fontsize=15, fontweight="bold")
+cbar.ax.tick_params(labelsize=13)
 
 # ------------------------------------------
 # B. Tumor burden heatmap
@@ -793,17 +810,18 @@ im = ax_heat.imshow(
 )
 
 ax_heat.set_xticks(range(len(size_labels)))
-ax_heat.set_xticklabels(size_labels, fontsize=11)
+ax_heat.set_xticklabels(size_labels, fontsize=14)
 ax_heat.set_yticks(range(len(count_labels)))
-ax_heat.set_yticklabels(count_labels, fontsize=11)
+ax_heat.set_yticklabels(count_labels, fontsize=14)
 
-ax_heat.set_xlabel("Diameter of Tumor (cm)", fontsize=13, fontweight="bold")
-ax_heat.set_ylabel("Number of Tumor", fontsize=13, fontweight="bold")
-ax_heat.set_title(
-    "(B) Tumor Burden Risk Heatmap",
-    fontsize=15,
-    fontweight="bold",
-    pad=10,
+ax_heat.set_xlabel("Diameter of tumor (cm)", fontsize=17, fontweight="bold")
+ax_heat.set_ylabel("Number of tumor", fontsize=17, fontweight="bold")
+
+ax_heat.text(
+    -0.10, 1.02, "(B)",
+    transform=ax_heat.transAxes,
+    fontsize=18, fontweight="bold",
+    va="bottom", ha="left",
 )
 
 # 画网格线，让每个格子更清楚
@@ -826,7 +844,7 @@ for r in range(heatmap_data.shape[0]):
                 f"{val:.2f}",
                 ha="center",
                 va="center",
-                fontsize=12,
+                fontsize=15,
                 fontweight="bold",
                 color=text_color,
             )
@@ -837,7 +855,7 @@ for r in range(heatmap_data.shape[0]):
                 "N/A",
                 ha="center",
                 va="center",
-                fontsize=10,
+                fontsize=13,
                 color="gray",
             )
 
@@ -845,14 +863,8 @@ for r in range(heatmap_data.shape[0]):
 divider2 = make_axes_locatable(ax_heat)
 cax2 = divider2.append_axes("right", size="5.5%", pad=0.12)
 cbar2 = fig.colorbar(im, cax=cax2)
-cbar2.set_label("Mean Predicted Probability", fontsize=11, fontweight="bold")
-
-fig.suptitle(
-    "Random Forest Top10 Model: Tumor Burden Interaction Visualization",
-    fontsize=17,
-    fontweight="bold",
-    y=0.98,
-)
+cbar2.set_label("Mean predicted probability", fontsize=15, fontweight="bold")
+cbar2.ax.tick_params(labelsize=13)
 
 fig_path_png = OUT_DIR / "rf_top10_tumor_burden_two_panel.png"
 fig_path_pdf = OUT_DIR / "rf_top10_tumor_burden_two_panel.pdf"

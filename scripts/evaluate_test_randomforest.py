@@ -8,8 +8,24 @@ import pandas as pd
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 from sklearn.metrics import (
     roc_auc_score,
@@ -59,7 +75,7 @@ COMMON_CMAP = LinearSegmentedColormap.from_list(
 
 print("=" * 80)
 print(f"INTERNAL TEST SET EVALUATION — {MODEL_DISPLAY.upper()}")
-print("Full RandomForest vs Top10 RandomForest")
+print("Full RandomForest vs Top10 model")
 print("=" * 80)
 
 
@@ -316,7 +332,7 @@ X_test_top10 = prepare_X(
     test_df,
     top10_cols,
     top10_model,
-    model_label="Top10 RandomForest",
+    model_label="Top10 model",
 )
 
 X_test_full = prepare_X(
@@ -339,7 +355,7 @@ print(f"\n[4] Thresholds")
 print(f"Threshold path: {THRESH_PATH}")
 print(threshold_df)
 print(f"Full RandomForest threshold : {best_thresh_full:.2f}")
-print(f"Top10 RandomForest threshold: {best_thresh_top10:.2f}")
+print(f"Top10 model threshold: {best_thresh_top10:.2f}")
 
 
 # ============================================================
@@ -427,7 +443,7 @@ b1 = ax.bar(
     x - w / 2,
     [m_top10[k] for k in PLOT_METRICS],
     w,
-    label=f"Top10 RandomForest (threshold={best_thresh_top10:.2f})",
+    label=f"Top10 model (threshold={best_thresh_top10:.2f})",
     color=TOP10_COLOR,
     alpha=0.88,
     edgecolor="black",
@@ -438,7 +454,7 @@ b2 = ax.bar(
     x + w / 2,
     [m_full[k] for k in PLOT_METRICS],
     w,
-    label=f"Full RandomForest (threshold={best_thresh_full:.2f})",
+    label=f"Full model (threshold={best_thresh_full:.2f})",
     color=FULL_COLOR,
     alpha=0.88,
     edgecolor="black",
@@ -449,25 +465,23 @@ for bar in list(b1) + list(b2):
     h = bar.get_height()
     ax.text(
         bar.get_x() + bar.get_width() / 2,
-        h + 0.012,
+        h + 0.015,
         f"{h:.3f}",
         ha="center",
         va="bottom",
-        fontsize=8.5,
+        fontsize=13,
         fontweight="bold",
     )
 
-ax.set_ylabel("Score", fontsize=12, fontweight="bold")
-ax.set_title(
-    "Random Forest: Top10 vs Full — Internal Test Set",
-    fontsize=14,
-    fontweight="bold",
-)
+ax.set_ylabel("Score", fontsize=17, fontweight="bold")
 ax.set_xticks(x)
-ax.set_xticklabels(PLOT_METRICS, fontsize=11)
+ax.set_xticklabels(PLOT_METRICS, fontsize=15)
+ax.tick_params(axis="y", labelsize=14)
 ax.set_ylim(0, 1.15)
 ax.grid(axis="y", linestyle="--", alpha=0.3)
-ax.legend(fontsize=10, frameon=False)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.legend(fontsize=14, frameon=False)
 
 plt.tight_layout()
 
@@ -493,7 +507,7 @@ axes[0].plot(
     tpr_t,
     color=TOP10_COLOR,
     lw=2.2,
-    label=f"Top10 RF (AUC={m_top10['AUC']:.3f})",
+    label=f"Top10 model (AUC={m_top10['AUC']:.3f})",
 )
 
 axes[0].plot(
@@ -502,7 +516,7 @@ axes[0].plot(
     color=FULL_COLOR,
     lw=2.2,
     linestyle="--",
-    label=f"Full RF (AUC={m_full['AUC']:.3f})",
+    label=f"Full model (AUC={m_full['AUC']:.3f})",
 )
 
 axes[0].plot([0, 1], [0, 1], "k--", lw=1, alpha=0.5)
@@ -530,11 +544,19 @@ axes[0].scatter(
     label=f"Full threshold={best_thresh_full:.2f}",
 )
 
-axes[0].set_xlabel("False Positive Rate", fontsize=11, fontweight="bold")
-axes[0].set_ylabel("True Positive Rate / Sensitivity", fontsize=11, fontweight="bold")
-axes[0].set_title("ROC Curve — Internal Test Set", fontsize=12, fontweight="bold")
-axes[0].legend(fontsize=8.5, frameon=False)
-axes[0].grid(alpha=0.3, linestyle="--")
+axes[0].set_xlabel("False Positive Rate", fontsize=15, fontweight="bold")
+axes[0].set_ylabel("True Positive Rate / Sensitivity", fontsize=15, fontweight="bold")
+axes[0].legend(fontsize=12, frameon=False)
+axes[0].grid(axis="y", alpha=0.3, linestyle="--")
+axes[0].spines["top"].set_visible(False)
+axes[0].spines["right"].set_visible(False)
+axes[0].tick_params(axis="both", labelsize=13)
+axes[0].text(
+    -0.08, 1.02, "(A)",
+    transform=axes[0].transAxes,
+    fontsize=18, fontweight="bold",
+    va="bottom", ha="left",
+)
 
 
 # PR
@@ -546,7 +568,7 @@ axes[1].plot(
     prec_t,
     color=TOP10_COLOR,
     lw=2.2,
-    label=f"Top10 RF (AUPRC={m_top10['AUPRC']:.3f})",
+    label=f"Top10 model (AUPRC={m_top10['AUPRC']:.3f})",
 )
 
 axes[1].plot(
@@ -555,7 +577,7 @@ axes[1].plot(
     color=FULL_COLOR,
     lw=2.2,
     linestyle="--",
-    label=f"Full RF (AUPRC={m_full['AUPRC']:.3f})",
+    label=f"Full model (AUPRC={m_full['AUPRC']:.3f})",
 )
 
 axes[1].axhline(
@@ -590,17 +612,18 @@ axes[1].scatter(
     label=f"Full threshold={best_thresh_full:.2f}",
 )
 
-axes[1].set_xlabel("Recall / Sensitivity", fontsize=11, fontweight="bold")
-axes[1].set_ylabel("Precision", fontsize=11, fontweight="bold")
-axes[1].set_title("Precision-Recall Curve — Internal Test Set", fontsize=12, fontweight="bold")
-axes[1].legend(fontsize=8.5, frameon=False)
-axes[1].grid(alpha=0.3, linestyle="--")
-
-fig.suptitle(
-    "Random Forest: Top10 vs Full — Internal Test Set",
-    fontsize=13,
-    fontweight="bold",
-    y=1.02,
+axes[1].set_xlabel("Recall / Sensitivity", fontsize=15, fontweight="bold")
+axes[1].set_ylabel("Precision", fontsize=15, fontweight="bold")
+axes[1].legend(fontsize=12, frameon=False)
+axes[1].grid(axis="y", alpha=0.3, linestyle="--")
+axes[1].spines["top"].set_visible(False)
+axes[1].spines["right"].set_visible(False)
+axes[1].tick_params(axis="both", labelsize=13)
+axes[1].text(
+    -0.08, 1.02, "(B)",
+    transform=axes[1].transAxes,
+    fontsize=18, fontweight="bold",
+    va="bottom", ha="left",
 )
 
 plt.tight_layout()

@@ -1,7 +1,23 @@
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from pathlib import Path
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 11,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 # ============================================================
 # 0. PATH SETTINGS
@@ -33,7 +49,7 @@ DISPLAY_NAMES = {
     "LogisticRegression": "Logistic Regression",
     "ElasticNet": "Elastic Net",
     "RandomForest": "Random Forest",
-    "SVM": "SVM",
+    "SVM": "Support Vector Machine",
     "LightGBM": "LightGBM",
     "GradientBoosting": "Gradient Boosting",
     "XGBoost": "XGBoost",
@@ -134,7 +150,7 @@ def get_error(df, metric):
     return np.zeros(len(df))
 
 
-def add_value_labels(ax, bars, values, errors=None, y_offset=0.018, fontsize=7):
+def add_value_labels(ax, bars, values, errors=None, y_offset=0.018, fontsize=8):
     """
     把数值标注放在 error bar 上方，避免被短竖线挡住。
     """
@@ -152,6 +168,17 @@ def add_value_labels(ax, bars, values, errors=None, y_offset=0.018, fontsize=7):
             fontsize=fontsize,
             rotation=90,
         )
+
+
+def add_panel_label(ax, letter, offset_x=-0.07, offset_y=1.02):
+    ax.text(
+        offset_x, offset_y, f"({letter})",
+        transform=ax.transAxes,
+        fontsize=18,
+        fontweight="bold",
+        va="bottom",
+        ha="left",
+    )
 
 
 def set_dynamic_ylim(ax, values_a, values_b, err_a=None, err_b=None):
@@ -223,30 +250,26 @@ for idx, (metric, metric_title) in enumerate(METRICS):
 
     set_dynamic_ylim(ax, baseline_vals, tuned_vals, baseline_err, tuned_err)
 
-    ax.set_title(metric_title, fontsize=15, fontweight="bold")
-    ax.set_ylabel("Score", fontsize=11)
+    ax.set_ylabel("Score", fontsize=11, fontweight="bold")
 
     ax.set_xticks(x)
     ax.set_xticklabels(
         [DISPLAY_NAMES[m] for m in MODEL_ORDER],
         rotation=35,
         ha="right",
-        fontsize=8,
+        fontsize=9,
     )
 
     ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    add_panel_label(ax, chr(ord("A") + idx))
 
     if idx == 0:
         ax.legend(frameon=False, loc="upper left", fontsize=10)
 
 axes[-1].axis("off")
-
-fig.suptitle(
-    "Baseline vs Tuned Model Performance Across Evaluation Metrics",
-    fontsize=20,
-    fontweight="bold",
-    y=1.02,
-)
 
 save_current_figure("fig1_baseline_vs_tuned_each_metric")
 
@@ -309,7 +332,7 @@ for idx, (ax, (metric, title)) in enumerate(zip(axes, four_panel_metrics)):
         baseline_vals,
         baseline_err,
         y_offset=0.018,
-        fontsize=8,
+        fontsize=13,
     )
 
     add_value_labels(
@@ -318,49 +341,40 @@ for idx, (ax, (metric, title)) in enumerate(zip(axes, four_panel_metrics)):
         tuned_vals,
         tuned_err,
         y_offset=0.018,
-        fontsize=8,
+        fontsize=13,
     )
 
     set_dynamic_ylim(ax, baseline_vals, tuned_vals, baseline_err, tuned_err)
 
-    ax.set_title(
-        f"{panel_labels[idx]}. Baseline vs Tuned {title}",
-        fontsize=14,
-        fontweight="bold",
-        loc="left",
-    )
-
-    ax.set_ylabel("Score", fontsize=11)
+    ax.set_ylabel("Score", fontsize=17, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(
         [DISPLAY_NAMES[m] for m in MODEL_ORDER],
         rotation=30,
         ha="right",
-        fontsize=9,
+        fontsize=15,
     )
+    ax.tick_params(axis="y", labelsize=14)
 
     ax.grid(axis="y", linestyle="--", alpha=0.3)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
-# 只放一个总图例，避免每个子图重复
+    add_panel_label(ax, panel_labels[idx])
+
+# 总图例：放到右上角，避免与子图标签 (A) 重叠
 handles, labels = axes[0].get_legend_handles_labels()
 fig.legend(
     handles,
     labels,
-    loc="upper center",
-    ncol=2,
+    loc="upper right",
+    ncol=1,
     frameon=False,
-    fontsize=11,
-    bbox_to_anchor=(0.5, 0.98),
+    fontsize=17,
+    bbox_to_anchor=(0.995, 0.995),
 )
 
-fig.suptitle(
-    "Comparison of Candidate Model Performance Before and After Hyperparameter Tuning",
-    fontsize=18,
-    fontweight="bold",
-    y=1.03,
-)
-
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.tight_layout(rect=[0, 0, 1, 0.96])
 
 four_panel_png = FIG_DIR / "fig2_baseline_vs_tuned_four_panel.png"
 four_panel_pdf = FIG_DIR / "fig2_baseline_vs_tuned_four_panel.pdf"
@@ -409,20 +423,17 @@ for metric, _ in KEY_TUNED_METRICS:
 top = np.max(np.array(all_vals) + np.array(all_errs))
 ax.set_ylim(0, min(1.25, max(1.02, top + 0.12)))
 
-ax.set_title(
-    "Key Performance Metrics of Tuned Models",
-    fontsize=17,
-    fontweight="bold",
-)
-ax.set_ylabel("Score")
+ax.set_ylabel("Score", fontsize=11, fontweight="bold")
 ax.set_xticks(x)
 ax.set_xticklabels(
     [DISPLAY_NAMES[m] for m in MODEL_ORDER],
     rotation=30,
     ha="right",
-    fontsize=9,
+    fontsize=10,
 )
 ax.grid(axis="y", linestyle="--", alpha=0.3)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
 ax.legend(frameon=False, ncol=4)
 
 save_current_figure("fig4_tuned_key_metrics")
@@ -467,19 +478,14 @@ im = ax.imshow(
 )
 
 cbar = plt.colorbar(im, ax=ax)
-cbar.set_label("Tuned - Baseline")
+cbar.set_label("Tuned - Baseline", fontsize=11, fontweight="bold")
+cbar.ax.tick_params(labelsize=9)
 
 ax.set_xticks(np.arange(len(delta_metrics)))
-ax.set_xticklabels([name for _, name in delta_metrics], rotation=30, ha="right")
+ax.set_xticklabels([name for _, name in delta_metrics], rotation=30, ha="right", fontsize=10)
 
 ax.set_yticks(np.arange(len(MODEL_ORDER)))
-ax.set_yticklabels([DISPLAY_NAMES[m] for m in MODEL_ORDER])
-
-ax.set_title(
-    "Performance Change After Hyperparameter Tuning",
-    fontsize=17,
-    fontweight="bold",
-)
+ax.set_yticklabels([DISPLAY_NAMES[m] for m in MODEL_ORDER], fontsize=10)
 
 for i in range(delta_data.shape[0]):
     for j in range(delta_data.shape[1]):
@@ -490,7 +496,7 @@ for i in range(delta_data.shape[0]):
             f"{value:+.3f}",
             ha="center",
             va="center",
-            fontsize=8,
+            fontsize=9,
         )
 
 save_current_figure("fig5_tuning_delta_heatmap")

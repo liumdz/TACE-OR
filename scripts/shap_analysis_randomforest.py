@@ -9,9 +9,49 @@ import shap
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
+
+ACRONYMS = {
+    "APTT", "AFP", "PVTT", "ALP", "GGT", "ALT", "AST",
+    "PA", "PT", "TT", "ALB", "DBIL", "TBIL", "HBsAg",
+    "BCLC", "TACE",
+}
+
+
+def prettify_feature_name(name: str) -> str:
+    if not name:
+        return name
+    tokens = name.split()
+    if not tokens:
+        return name
+    out = []
+    for i, tok in enumerate(tokens):
+        if tok in ACRONYMS:
+            out.append(tok)
+        elif i == 0:
+            out.append(tok[0].upper() + tok[1:])
+        else:
+            out.append(tok)
+    return " ".join(out)
 
 
 # ============================================================
@@ -220,7 +260,7 @@ print(f"\nMerged features: {len(FEATURE_COLS)} → {len(merged_feat_names)}")
 
 
 def display_name(name: str) -> str:
-    return str(name).replace("_", " ")
+    return prettify_feature_name(str(name).replace("_", " "))
 
 
 merged_X_display = merged_X_sorted.copy()
@@ -277,12 +317,17 @@ shap.summary_plot(
     show=False,
     max_display=len(merged_feat_names),
 )
-plt.title(
-    f"SHAP Summary Plot\n{MODEL_NAME}",
-    fontsize=15,
-    fontweight="bold",
-    pad=20,
-)
+ax = plt.gca()
+ax.set_xlabel("SHAP value (impact on model output)", fontsize=18, fontweight="bold")
+ax.tick_params(axis="both", labelsize=16)
+# 调整 colorbar 字号
+for child in plt.gcf().get_children():
+    if hasattr(child, "yaxis") and child is not ax:
+        child.tick_params(labelsize=14)
+        if child.get_ylabel():
+            child.set_ylabel(child.get_ylabel(), fontsize=16, fontweight="bold")
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
 plt.tight_layout()
 out = RESULT_DIR / "shap_summary_all_features.png"
 plt.savefig(out, dpi=300, bbox_inches="tight")
@@ -306,16 +351,12 @@ shap.summary_plot(
 ax = plt.gca()
 ax.set_xlabel(
     "Mean |SHAP value|",
-    fontsize=13,
+    fontsize=18,
     fontweight="bold"
 )
-
-plt.title(
-    f"SHAP Feature Importance\n{MODEL_NAME}",
-    fontsize=15,
-    fontweight="bold",
-    pad=20,
-)
+ax.tick_params(axis="both", labelsize=16)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
 
 plt.tight_layout()
 
@@ -345,15 +386,12 @@ bars = ax.barh(
 )
 
 ax.set_yticks(y_pos)
-ax.set_yticklabels(top10_display[::-1], fontsize=12, fontweight="bold")
-ax.set_xlabel("Mean |SHAP Value|", fontsize=13, fontweight="bold")
-ax.set_title(
-    f"Top 10 Most Important Features\n{MODEL_NAME}",
-    fontsize=14,
-    fontweight="bold",
-    pad=20,
-)
+ax.set_yticklabels(top10_display[::-1], fontsize=11, fontweight="bold")
+ax.set_xlabel("Mean |SHAP value|", fontsize=12, fontweight="bold")
 ax.grid(axis="x", alpha=0.3, linestyle="--")
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.tick_params(axis="both", labelsize=10)
 
 for i, (bar, val, pct) in enumerate(zip(bars, top10_imp[::-1], top10_pct[::-1])):
     ax.text(
@@ -361,7 +399,7 @@ for i, (bar, val, pct) in enumerate(zip(bars, top10_imp[::-1], top10_pct[::-1]))
         i,
         f"{val:.4f} ({pct:.1f}%)",
         va="center",
-        fontsize=11,
+        fontsize=10,
         fontweight="bold",
     )
 
@@ -401,19 +439,16 @@ bars = ax1.bar(
 ax1.set_xticks(x_pos)
 ax1.set_xticklabels(
     top10_display,
-    fontsize=11,
+    fontsize=15,
     fontweight="bold",
     rotation=45,
     ha="right",
 )
-ax1.set_ylabel("Mean |SHAP Value|", fontsize=13, fontweight="bold")
-ax1.set_title(
-    f"Top 10 Features with Cumulative Importance\n{MODEL_NAME}",
-    fontsize=14,
-    fontweight="bold",
-    pad=20,
-)
+ax1.set_ylabel("Mean |SHAP value|", fontsize=17, fontweight="bold")
 ax1.grid(axis="y", alpha=0.3, linestyle="--")
+ax1.spines["top"].set_visible(False)
+ax1.spines["right"].set_visible(False)
+ax1.tick_params(axis="y", labelsize=14)
 
 # 柱子数值标注
 for i, (bar, val) in enumerate(zip(bars, top10_imp)):
@@ -423,7 +458,7 @@ for i, (bar, val) in enumerate(zip(bars, top10_imp)):
         f"{val:.4f}",
         ha="center",
         va="bottom",
-        fontsize=10,
+        fontsize=14,
         fontweight="bold",
         color="#2F3E4E",
     )
@@ -446,12 +481,13 @@ ax2.plot(
 
 ax2.set_ylabel(
     "Cumulative Importance (%)",
-    fontsize=13,
+    fontsize=17,
     fontweight="bold",
     color="#1F4E79",
 )
-ax2.tick_params(axis="y", labelcolor="#1F4E79")
+ax2.tick_params(axis="y", labelcolor="#1F4E79", labelsize=14)
 ax2.set_ylim(0, 105)
+ax2.spines["top"].set_visible(False)
 
 # 累计百分比标注
 for i, pct in enumerate(cumulative_pct):
@@ -461,7 +497,7 @@ for i, pct in enumerate(cumulative_pct):
         f"{pct:.1f}%",
         ha="center",
         va="bottom",
-        fontsize=9,
+        fontsize=13,
         fontweight="bold",
         color="#1F4E79",
     )
@@ -476,7 +512,7 @@ ax2.axhline(
     label="80% threshold",
 )
 
-ax2.legend(loc="lower right", fontsize=11, frameon=True)
+ax2.legend(loc="lower right", fontsize=14, frameon=True)
 
 plt.tight_layout()
 out = RESULT_DIR / "Top10_features_cumulative.png"

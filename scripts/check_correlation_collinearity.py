@@ -3,11 +3,27 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 import joblib
 
 warnings.filterwarnings("ignore")
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 12,
+    "axes.labelsize": 11,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 9,
+    "ytick.labelsize": 9,
+    "legend.fontsize": 9,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 # ============================================================
 # PATH SETTINGS
@@ -117,27 +133,46 @@ corr_df = df_num.corr(method="spearman")
 vif_df = compute_vif(df_num)
 
 # ============================================================
-# PLOT LEFT-RIGHT SUBPLOTS WITH TITLES AND (A)/(B) LABELS
+# PLOT LEFT-RIGHT SUBPLOTS
 # ============================================================
 fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+
+PANEL_LABEL_KW = dict(
+    fontsize=14,
+    fontweight="bold",
+    va="bottom",
+    ha="left",
+)
+
+
+def add_panel_label(ax, letter):
+    ax.text(
+        -0.08, 1.02, f"({letter})",
+        transform=ax.transAxes,
+        **PANEL_LABEL_KW,
+    )
+
 
 # ---------- Spearman heatmap ----------
 ax = axes[0]
 im1 = ax.imshow(corr_df.values, cmap="Blues", vmin=-1, vmax=1, aspect="auto")
 ax.set_xticks(np.arange(len(corr_df.columns)))
 ax.set_yticks(np.arange(len(corr_df.index)))
-ax.set_xticklabels(corr_df.columns, rotation=45, ha="right", fontsize=9)
-ax.set_yticklabels(corr_df.index, fontsize=9)
-ax.set_title("(A) Spearman Correlation", fontsize=14, fontweight="bold")
+ax.set_xticklabels(corr_df.columns, rotation=45, ha="right", fontsize=10)
+ax.set_yticklabels(corr_df.index, fontsize=10)
 
-# 标注数值
+# 数值标注（对角线为深色填充，用白色字以保证可读性）
 for i in range(len(corr_df.index)):
     for j in range(len(corr_df.columns)):
         val = corr_df.iloc[i, j]
-        ax.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=8, color="black")
+        text_color = "white" if i == j else "black"
+        ax.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=9, color=text_color)
 
 cbar1 = fig.colorbar(im1, ax=ax, fraction=0.046, pad=0.04)
-cbar1.set_label("Spearman r", fontsize=12)
+cbar1.set_label("Spearman r", fontsize=11, fontweight="bold")
+cbar1.ax.tick_params(labelsize=9)
+
+add_panel_label(ax, "A")
 
 # ---------- VIF heatmap ----------
 ax = axes[1]
@@ -145,22 +180,20 @@ vif_matrix = np.diag(vif_df["VIF"].values)
 im2 = ax.imshow(vif_matrix, cmap="Blues", aspect="auto")
 ax.set_xticks(np.arange(len(vif_df)))
 ax.set_yticks(np.arange(len(vif_df)))
-ax.set_xticklabels(vif_df["Feature"], rotation=45, ha="right", fontsize=9)
-ax.set_yticklabels(vif_df["Feature"], fontsize=9)
-ax.set_title("(B) VIF Heatmap", fontsize=14, fontweight="bold")
+ax.set_xticklabels(vif_df["Feature"], rotation=45, ha="right", fontsize=10)
+ax.set_yticklabels(vif_df["Feature"], fontsize=10)
 
-# 标注数值
+# 数值标注（对角线带颜色填充，用白色字）
 for i in range(len(vif_df)):
-    ax.text(i, i, f"{vif_df['VIF'].iloc[i]:.2f}", ha="center", va="center", fontsize=8, color="black")
+    ax.text(i, i, f"{vif_df['VIF'].iloc[i]:.2f}", ha="center", va="center", fontsize=9, color="white")
 
 cbar2 = fig.colorbar(im2, ax=ax, fraction=0.046, pad=0.04)
-cbar2.set_label("VIF", fontsize=12)
+cbar2.set_label("VIF", fontsize=11, fontweight="bold")
+cbar2.ax.tick_params(labelsize=9)
 
+add_panel_label(ax, "B")
 
-# ---------- Overall title ----------
-fig.suptitle("Correlation and Multicollinearity Check", fontsize=16, fontweight="bold")
-
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.tight_layout()
 plt.savefig(OUT_DIR / "correlation_vif_subplot_labeled.png", dpi=300, bbox_inches="tight")
 plt.savefig(OUT_DIR / "correlation_vif_subplot_labeled.pdf", bbox_inches="tight")
 plt.close()

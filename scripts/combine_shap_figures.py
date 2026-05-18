@@ -9,9 +9,17 @@ Layout (A/B on top row, C spanning the bottom row):
 """
 from pathlib import Path
 
+import matplotlib as mpl
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
 
 ROOT = Path(__file__).resolve().parents[1]
 SHAP_DIR = ROOT / "output" / "shap_analysis" / "randomforest"
@@ -26,19 +34,20 @@ def _add_panel(ax: plt.Axes, img_path: Path, label: str) -> None:
     ax.imshow(mpimg.imread(img_path))
     ax.axis("off")
     ax.text(
-        -0.02, 1.02, f"({label})",
+        0.0, 1.005, f"({label})",
         transform=ax.transAxes,
-        fontsize=14, fontweight="normal",
+        fontsize=13, fontweight="bold",
         va="bottom", ha="left",
     )
 
 
 def main() -> None:
-    fig = plt.figure(figsize=(16, 14), dpi=300)
+    fig = plt.figure(figsize=(18, 16), dpi=300)
     gs = GridSpec(
         2, 2, figure=fig,
         height_ratios=[1.25, 1.0],
-        wspace=0.04, hspace=0.06,
+        wspace=0.0, hspace=0.0,
+        left=0.01, right=0.99, top=0.99, bottom=0.01,
     )
 
     _add_panel(fig.add_subplot(gs[0, 0]), PANEL_A, "A")

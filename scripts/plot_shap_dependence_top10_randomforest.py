@@ -10,9 +10,54 @@ import shap
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
+
+mpl.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+    "axes.titlesize": 13,
+    "axes.labelsize": 12,
+    "axes.labelweight": "bold",
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+})
+
+
+# 保留专业缩写大小写，其余首字母大写
+ACRONYMS = {
+    "APTT", "AFP", "PVTT", "ALP", "GGT", "ALT", "AST",
+    "PA", "PT", "TT", "ALB", "DBIL", "TBIL", "HBsAg",
+    "BCLC", "TACE",
+}
+
+
+def prettify_feature_name(name: str) -> str:
+    """首字母大写但保留临床缩写大小写，例如:
+       'diameter of tumor' -> 'Diameter of tumor'
+       'BCLC stage' -> 'BCLC stage'
+    """
+    if not name:
+        return name
+    tokens = name.split()
+    if not tokens:
+        return name
+    out = []
+    for i, tok in enumerate(tokens):
+        if tok in ACRONYMS:
+            out.append(tok)
+        elif i == 0:
+            out.append(tok[0].upper() + tok[1:])
+        else:
+            out.append(tok)
+    return " ".join(out)
 
 
 # ==========================================
@@ -487,14 +532,14 @@ for idx, feat in enumerate(valid_plot_features):
                 [label_map.get(int(c), str(int(c))) for c in categories],
                 rotation=20,
                 ha="right",
-                fontsize=9
+                fontsize=15
             )
         else:
             ax.set_xticklabels(
                 [str(int(c)) for c in categories],
                 rotation=20,
                 ha="right",
-                fontsize=9
+                fontsize=15
             )
 
     else:
@@ -534,16 +579,17 @@ for idx, feat in enumerate(valid_plot_features):
                 pass
 
     ax.axhline(0, color="black", linestyle="--", linewidth=0.9, alpha=0.6)
-    ax.grid(alpha=0.22, linestyle="--")
+    ax.grid(axis="y", alpha=0.3, linestyle="--", linewidth=0.6)
+    ax.tick_params(axis="both", labelsize=15)
 
     ax.set_title(
-        disp_name,
-        fontsize=12,
+        prettify_feature_name(disp_name),
+        fontsize=20,
         fontweight="bold",
         pad=8,
     )
-    ax.set_xlabel("Actual value", fontsize=10)
-    ax.set_ylabel("SHAP value", fontsize=10)
+    ax.set_xlabel("Actual value", fontsize=17, fontweight="bold")
+    ax.set_ylabel("SHAP value", fontsize=17, fontweight="bold")
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -553,12 +599,6 @@ for idx in range(n_features, nrows * ncols):
     row = idx // ncols
     col = idx % ncols
     axes[row, col].axis("off")
-
-fig.suptitle(
-    "SHAP Dependence Plots of Top Features — RandomForest",
-    fontsize=18,
-    fontweight="bold",
-)
 
 # ==========================================
 # 8. 保存
