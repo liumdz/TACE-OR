@@ -46,12 +46,12 @@ MODEL_ORDER = [
 ]
 
 DISPLAY_NAMES = {
-    "LogisticRegression": "Logistic Regression",
-    "ElasticNet": "Elastic Net",
-    "RandomForest": "Random Forest",
-    "SVM": "Support Vector Machine",
+    "LogisticRegression": "LR",
+    "ElasticNet": "EN",
+    "RandomForest": "RF",
+    "SVM": "SVM",
     "LightGBM": "LightGBM",
-    "GradientBoosting": "Gradient Boosting",
+    "GradientBoosting": "GBM",
     "XGBoost": "XGBoost",
 }
 
@@ -346,7 +346,7 @@ for idx, (ax, (metric, title)) in enumerate(zip(axes, four_panel_metrics)):
 
     set_dynamic_ylim(ax, baseline_vals, tuned_vals, baseline_err, tuned_err)
 
-    ax.set_ylabel("Score", fontsize=17, fontweight="bold")
+    ax.set_ylabel(title, fontsize=17, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(
         [DISPLAY_NAMES[m] for m in MODEL_ORDER],

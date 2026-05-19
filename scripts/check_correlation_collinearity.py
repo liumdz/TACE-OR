@@ -138,7 +138,7 @@ vif_df = compute_vif(df_num)
 fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
 PANEL_LABEL_KW = dict(
-    fontsize=14,
+    fontsize=20,
     fontweight="bold",
     va="bottom",
     ha="left",
@@ -158,8 +158,8 @@ ax = axes[0]
 im1 = ax.imshow(corr_df.values, cmap="Blues", vmin=-1, vmax=1, aspect="auto")
 ax.set_xticks(np.arange(len(corr_df.columns)))
 ax.set_yticks(np.arange(len(corr_df.index)))
-ax.set_xticklabels(corr_df.columns, rotation=45, ha="right", fontsize=10)
-ax.set_yticklabels(corr_df.index, fontsize=10)
+ax.set_xticklabels(corr_df.columns, rotation=45, ha="right", fontsize=14)
+ax.set_yticklabels(corr_df.index, fontsize=14)
 
 # 数值标注（对角线为深色填充，用白色字以保证可读性）
 for i in range(len(corr_df.index)):
@@ -169,8 +169,8 @@ for i in range(len(corr_df.index)):
         ax.text(j, i, f"{val:.2f}", ha="center", va="center", fontsize=9, color=text_color)
 
 cbar1 = fig.colorbar(im1, ax=ax, fraction=0.046, pad=0.04)
-cbar1.set_label("Spearman r", fontsize=11, fontweight="bold")
-cbar1.ax.tick_params(labelsize=9)
+cbar1.set_label("Spearman r", fontsize=15, fontweight="bold")
+cbar1.ax.tick_params(labelsize=13)
 
 add_panel_label(ax, "A")
 
@@ -180,16 +180,16 @@ vif_matrix = np.diag(vif_df["VIF"].values)
 im2 = ax.imshow(vif_matrix, cmap="Blues", aspect="auto")
 ax.set_xticks(np.arange(len(vif_df)))
 ax.set_yticks(np.arange(len(vif_df)))
-ax.set_xticklabels(vif_df["Feature"], rotation=45, ha="right", fontsize=10)
-ax.set_yticklabels(vif_df["Feature"], fontsize=10)
+ax.set_xticklabels(vif_df["Feature"], rotation=45, ha="right", fontsize=14)
+ax.set_yticklabels(vif_df["Feature"], fontsize=14)
 
 # 数值标注（对角线带颜色填充，用白色字）
 for i in range(len(vif_df)):
     ax.text(i, i, f"{vif_df['VIF'].iloc[i]:.2f}", ha="center", va="center", fontsize=9, color="white")
 
 cbar2 = fig.colorbar(im2, ax=ax, fraction=0.046, pad=0.04)
-cbar2.set_label("VIF", fontsize=11, fontweight="bold")
-cbar2.ax.tick_params(labelsize=9)
+cbar2.set_label("VIF", fontsize=15, fontweight="bold")
+cbar2.ax.tick_params(labelsize=13)
 
 add_panel_label(ax, "B")
 
